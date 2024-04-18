@@ -221,6 +221,7 @@ func purgeTags(ctx context.Context, acrClient api.AcrCLIClientInterface, poolSiz
 // collectTagFilters collects all matching repos and collects the associated tag filters
 func collectTagFilters(ctx context.Context, rawFilters []string, client acrapi.BaseClientAPI, regexMatchTimeout uint64) (map[string]string, error) {
 	allRepoNames, err := getAllRepositoryNames(ctx, client)
+	fmt.Println(len(allRepoNames))
 	if err != nil {
 		return nil, err
 	}
@@ -231,10 +232,15 @@ func collectTagFilters(ctx context.Context, rawFilters []string, client acrapi.B
 		if err != nil {
 			return nil, err
 		}
+
+		fmt.Printf("repo regex: %s\n", repoRegex)
+		fmt.Printf("tag regex: %s\n", tagRegex)
 		repoNames, err := getMatchingRepos(allRepoNames, "^"+repoRegex+"$", regexMatchTimeout)
 		if err != nil {
 			return nil, err
 		}
+
+		fmt.Printf("matching repo length: %d\n", len(repoNames))
 		for _, repoName := range repoNames {
 			if _, ok := tagFilters[repoName]; ok {
 				// To only iterate through a repo once a big regex filter is made of all the filters of a particular repo.
