@@ -8,11 +8,11 @@ import (
 	"fmt"
 
 	"github.com/Azure/acr-cli/cmd/api"
-	oras "github.com/oras-project/oras-go"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
-	// oras "oras.land/oras-go/v2"
+	"oras.land/oras-go/v2"
+	"oras.land/oras-go/v2/content/memory"
 	"oras.land/oras-go/v2/registry/remote"
 )
 
