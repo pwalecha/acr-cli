@@ -107,8 +107,6 @@ golang.org/x/sys/windows
 gopkg.in/yaml.v3
 # gotest.tools/v3 v3.4.0
 ## explicit; go 1.13
-# oras.land/oras-go v1.2.5
-## explicit; go 1.18
 # oras.land/oras-go/v2 v2.3.1
 ## explicit; go 1.20
 oras.land/oras-go/v2

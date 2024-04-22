@@ -13,7 +13,8 @@ import (
 
 	"oras.land/oras-go/v2"
 	"oras.land/oras-go/v2/content/memory"
-	"oras.land/oras-go/v2/registry/remote"
+	"oras.land/oras-go/v2/registry/remote/auth"
+	"oras.land/oras-go/v2/registry/remote/retry"
 )
 
 const (
@@ -39,25 +40,53 @@ func newCopaPatchCmd(rootParams *rootParameters) *cobra.Command {
 			ctx := context.Background()
 			registryName, err := copaParams.GetRegistryName()
 			loginURL := api.LoginURL(registryName)
-
+			println(loginURL)
+			println(registryName)
+			//fs, err := file.New("/tmp/")
 			// An acrClient with authentication is generated, if the authentication cannot be resolved an error is returned.
 			acrClient, err := api.GetAcrCLIClientWithAuth(loginURL, copaParams.username, copaParams.password, copaParams.configs)
 			if err != nil {
 				return err
 			}
 
-			src, err := remote.NewRepository(registryName + "/ocirepocollection")
+			repo, err := remote.NewRepository(registryName + "/ocirepocollection:latest")
 			if err != nil {
 				panic(err)
 			}
 
+			repo.Client = &auth.Client{
+				Client: retry.DefaultClient,
+				Cache:  auth.DefaultCache,
+				Credential: auth.StaticCredential(registryName, auth.Credential{
+					Username: copaParams.username,
+					Password: copaParams.password,
+				}),
+			}
+
+			println("authentication done")
+			println(repo.Reference.Registry)
 			dst := memory.New()
-			desc, err := oras.ExtendedCopy(ctx, src, "latest", dst, "latest", oras.DefaultExtendedCopyOptions)
+			desc, err := oras.ExtendedCopy(ctx, repo, "latest", dst, "latest", oras.DefaultExtendedCopyOptions)
+			println("after calling extended copy")
 			if err != nil {
 				panic(err)
 			}
 
-			//copaCmd := copaPatchCmd(&copaParams)
+			println(desc.Digest.String())
+
+			// op, error := dst.(ctx, desc)
+			// tmpFile, err := ioutil.TempFile("", "example")
+			// if err != nil {
+			// 	fmt.Println("Error creating temporary file:", err)
+			// }
+			// defer tmpFile.Close()
+
+			// // Write the memory stream data to the temporary file
+			// _, err = tmpFile.Write(op)
+			// if err != nil {
+			// 	fmt.Println("Error writing to temporary file:", err)
+			// }
+
 			tagFilters, err := collectTagFilters(ctx, copaParams.filters, acrClient.AutorestClient, copaParams.filterTimeout)
 			if err != nil {
 				return err
